@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2014/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: JavaAssignment.aux
+The style file: plain.bst
+Database file #1: flockingTex.bib
+Warning--to sort, need author or key in unknown15flockingrules
+Warning--empty journal in reynolds87behavioral
+You've used 7 entries,
+            2118 wiz_defined-function locations,
+            535 strings with 4890 characters,
+and the built_in function-call counts, 1534 in all, are:
+= -- 141
+> -- 49
+< -- 0
++ -- 21
+- -- 14
+* -- 69
+:= -- 258
+add.period$ -- 20
+call.type$ -- 7
+change.case$ -- 27
+chr.to.int$ -- 0
+cite$ -- 9
+duplicate$ -- 61
+empty$ -- 155
+format.name$ -- 14
+if$ -- 327
+int.to.chr$ -- 0
+int.to.str$ -- 7
+missing$ -- 4
+newline$ -- 37
+num.names$ -- 12
+pop$ -- 52
+preamble$ -- 1
+purify$ -- 21
+quote$ -- 0
+skip$ -- 49
+stack$ -- 0
+substring$ -- 53
+swap$ -- 6
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 26
+warning$ -- 2
+while$ -- 13
+width$ -- 8
+write$ -- 71
+(There were 2 warnings)
