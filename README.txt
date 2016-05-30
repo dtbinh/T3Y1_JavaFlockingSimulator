@@ -1,8 +1,6 @@
-
-
 *** FLOCKING SIMULATOR READ ME***
 
-To run the application:
+To run the application, follow these steps:
 
 1. COMPILE all .java files in directive "FlockingSimulator":
 ***WARNING: Do NOT include anything from other directives when compiling/running the application*** 
