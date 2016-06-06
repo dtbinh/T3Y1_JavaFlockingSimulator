@@ -102,8 +102,8 @@ public class Boid
     public void calculateNewPosition()
     {
         double newX, newY;
-        double speed = this.velocity.getLength();
-        double angle = this.velocity.getAngle();
+        double speed = this.velocity.getMagnitude();
+        double angle = this.velocity.getDirection();
 
         newX = this.myCoordinate.getxCoord() + speed * Math.cos(angle);
         newY = this.myCoordinate.getyCoord() + speed * Math.sin(angle);
@@ -175,7 +175,7 @@ public class Boid
     private void limitVelocities()
     {
         int i = 0;
-        while (this.velocity.getLength() > MAX_VELOCITY)
+        while (this.velocity.getMagnitude() > MAX_VELOCITY)
         {
             this.velocity.mult(0.9);
             i++;
@@ -208,9 +208,9 @@ public class Boid
                 }
             }
 
-            if (totalSeparation.getLength() != 0)
+            if (totalSeparation.getMagnitude() != 0)
             {
-                double separationFactor = WEIGHTING_SEPARATION * Math.expm1((D1 / (totalSeparation.getLength())));
+                double separationFactor = WEIGHTING_SEPARATION * Math.expm1((D1 / (totalSeparation.getMagnitude())));
                 totalSeparation.mult(separationFactor);
                 totalSeparation.inv();
 
@@ -333,7 +333,7 @@ public class Boid
      */
     private int[] calculateXPoints()
     {
-        double angle = this.velocity.getAngle();
+        double angle = this.velocity.getDirection();
         double x = myCoordinate.getxCoord();
         int[] xPoints = new int[N_POINTS];
 
@@ -350,7 +350,7 @@ public class Boid
      */
     private int[] calculateYPoints()
     {
-        double angle = this.velocity.getAngle();
+        double angle = this.velocity.getDirection();
         double y = myCoordinate.getyCoord();
         int[] yPoints = new int[N_POINTS];
 
