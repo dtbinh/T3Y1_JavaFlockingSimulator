@@ -17,7 +17,7 @@ import java.awt.*;
  * @version 1.0
  * @since   13-04-2015
  */
-public class MainFrame implements Runnable
+public class FlockingSimulator implements Runnable
 {
     /***********************************************
      *      INSTANCE VARIABLES
@@ -40,8 +40,8 @@ public class MainFrame implements Runnable
      */
     public static void main(String [] args)
 	{
-		MainFrame myMain = new MainFrame();
-		SwingUtilities.invokeLater(myMain);
+		FlockingSimulator myFlockingSimulator = new FlockingSimulator();
+		SwingUtilities.invokeLater(myFlockingSimulator);
 	}
 
     /**
@@ -58,6 +58,7 @@ public class MainFrame implements Runnable
         this.worldSimulation = new WorldSimulation(this.boidPane, this.menuPane);
 
         this.setupSimulatorWindow();
+        this.setupCloseWindowMethod();
     }
 
     /**
@@ -71,10 +72,17 @@ public class MainFrame implements Runnable
         this.mainFrame.setLayout(frameLayout);
         this.mainFrame.add(this.boidPane, BorderLayout.CENTER);
         this.mainFrame.add(this.menuPane, BorderLayout.EAST);
+        
+        
 
         this.mainFrame.pack();
         this.mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.mainFrame.setResizable(true);
         this.mainFrame.setVisible(true);
+	}
+
+	private void setupCloseWindowMethod() {
+		// TODO Potentially Save active program?
+		
 	}
 }

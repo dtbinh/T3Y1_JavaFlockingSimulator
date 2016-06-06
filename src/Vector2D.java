@@ -27,7 +27,7 @@ public class Vector2D
      */
     public Vector2D()
     {
-        this.x  = 0;
+        this.x = 0;
         this.y = 0;
     }
 
@@ -44,13 +44,13 @@ public class Vector2D
 
     /**
      * Constructor which produces a pseudo random vector with component vectors in the range of ± max_component
-     * @param max_component Component vectors will be set between ± this
+     * @param maxComponentSize Component vectors will be set between ± this
      */
-    public Vector2D(double max_component)
+    public Vector2D(double maxComponentSize)
     {
         Random randomSeed = new Random();
-        this.x  = (int) (randomSeed.nextInt(2 * (int) max_component) - max_component);
-        this.y = (int) (randomSeed.nextInt(2 * (int) max_component) - max_component);
+        this.x  = (int) (randomSeed.nextInt(2 * (int) maxComponentSize) - maxComponentSize);
+        this.y = (int) (randomSeed.nextInt(2 * (int) maxComponentSize) - maxComponentSize);
     }
 
     /**
@@ -105,6 +105,15 @@ public class Vector2D
         this.x *= -1;
         this.y *= -1;
     }
+    
+    /**
+     * Makes the current vector a unit vector
+     */
+    public void mod() //TODO check that this works
+    {
+        this.x /= this.getLength() * Math.cos(this.getAngle());
+        this.y /= this.getLength() * Math.sin(this.getAngle());        
+    }
 
     /***********************************************
      *      Getters / Setters
@@ -129,7 +138,7 @@ public class Vector2D
     }
 
     /**
-     * Calculates and returns the length(hypotenuses) of the vector
+     * Calculates and returns the length(hypotenus) of the vector
      * @return Returns the length of the vector
      */
     public double getLength()
