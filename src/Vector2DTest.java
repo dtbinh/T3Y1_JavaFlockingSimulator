@@ -41,7 +41,7 @@ public class Vector2DTest {
 	public void addingVectors() {
 		Vector2D vector1 = new Vector2D(1, 1);
 		Vector2D vector2 = new Vector2D(-1, 1);
-		Vector2D vector3 = vector1.addTwoVectors(vector1, vector2);
+		Vector2D vector3 = vector1.addNew(vector1, vector2);
 		assertEquals(vector3.getX(), 0, 0);
 		assertEquals(vector3.getY(), 2, 0);
 

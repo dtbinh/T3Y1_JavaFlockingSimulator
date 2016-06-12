@@ -23,7 +23,8 @@ public class FlockingSimulator implements Runnable
      *      INSTANCE VARIABLES
      ***********************************************/
 
-    private JFrame mainFrame;
+    private JFrame simulatorFrame;
+    private JFrame settingsFrame;
     private BoidPanel boidPane;
     private MenuPanel menuPane;
     private WorldSimulation worldSimulation;
@@ -52,33 +53,39 @@ public class FlockingSimulator implements Runnable
      */@Override
     public void run()
 	{
-        this.mainFrame = new JFrame("Flocking Simulator");
+        this.simulatorFrame = new JFrame("Flocking Simulator");
+        this.settingsFrame = new JFrame("Flocking Sim - Settings");
         this.boidPane = new BoidPanel();
         this.menuPane = new MenuPanel();
         this.worldSimulation = new WorldSimulation(this.boidPane, this.menuPane);
 
-        this.setupSimulatorWindow();
+        this.setupSimulatorWindows();
         this.setupCloseWindowMethod();
     }
 
-    /**
+	/**
      * Sets the mainFrame to use BorderLayout.
      * Adds the contents onto the frame, and sets settings
      *  regarding visuals and closing of the frame
      */
-	private void setupSimulatorWindow()
+	private void setupSimulatorWindows()
 	{
-        BorderLayout frameLayout = new BorderLayout();
-        this.mainFrame.setLayout(frameLayout);
-        this.mainFrame.add(this.boidPane, BorderLayout.CENTER);
-        this.mainFrame.add(this.menuPane, BorderLayout.EAST);
+        BorderLayout myBorderLayout = new BorderLayout();
+       
+        this.simulatorFrame.setLayout(myBorderLayout);
+        this.simulatorFrame.add(this.boidPane, BorderLayout.CENTER);
+        this.simulatorFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.simulatorFrame.setLocationRelativeTo(null);
+        this.simulatorFrame.setResizable(true);
+        this.simulatorFrame.pack();
+        this.simulatorFrame.setVisible(true);
         
-        
-
-        this.mainFrame.pack();
-        this.mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.mainFrame.setResizable(true);
-        this.mainFrame.setVisible(true);
+        this.settingsFrame.setLayout(myBorderLayout);
+        this.settingsFrame.add(this.menuPane, BorderLayout.CENTER);
+		this.settingsFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        this.settingsFrame.setResizable(true);
+        this.settingsFrame.pack();
+        this.settingsFrame.setVisible(true);
 	}
 
 	private void setupCloseWindowMethod() {

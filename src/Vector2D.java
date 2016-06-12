@@ -51,10 +51,8 @@ public class Vector2D {
 	 */
 	public Vector2D(double maxMagnitude) {
 		Random randomNumber = new Random();
-		//this.x = (randomNumber.nextInt(2 * (int) maxMagnitude) - maxMagnitude);
-		//this.y = (randomNumber.nextInt(2 * (int) maxMagnitude) - maxMagnitude);
-		this.x = 10;
-		this.y= 5;
+		this.x = (randomNumber.nextInt(2 * (int) maxMagnitude) - maxMagnitude);
+		this.y = (randomNumber.nextInt(2 * (int) maxMagnitude) - maxMagnitude);
 		
 		double magnitude = this.getMagnitude();
 		
@@ -92,7 +90,7 @@ public class Vector2D {
 		this.y += addedVector.getY();
 	}
 
-	public Vector2D addTwoVectors(Vector2D vector1, Vector2D vector2) {
+	public Vector2D addNew(Vector2D vector1, Vector2D vector2) {
 		double newX = vector1.getX() + vector2.getX();
 		double newY = vector1.getX() + vector2.getY();
 		return new Vector2D(newX, newY);

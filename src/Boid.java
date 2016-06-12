@@ -1,415 +1,413 @@
 import java.util.ArrayList;
+import java.util.Random;
 import java.awt.*;
 
 /**
- * <h1>Boid</h1>
- * This class represents a 2D boid.
+ * <h1>Boid</h1> This class represents a 2D boid.
  *
- * @author  Y3508038
+ * @author Y3508038
  * @version 1.0
- * @since   13-04-2015
+ * @since 13-04-2015
  */
 
-public class Boid
-{
-    /***********************************************
-     *      INSTANCE VARIABLES AND "DEFINITIONS"
-     ***********************************************/
+public class Boid {
+	/***********************************************
+	 * INSTANCE VARIABLES AND "DEFINITIONS"
+	 ***********************************************/
 
-    private static final double MAX_VELOCITY = 1.7;
-    //DISTANCE from centre to points behind the boid
-    private static final double D1 = 6;
-    //Distance from centre to front of boid,
-    private static final double D2 = 2 * D1;
-    //Number of points in the drawing of a boid
-    private static final int N_POINTS = 3;
-    private static final double NEIGHBOURHOOD = 7 * D1;
+	private static double maxVelocity = 5; // TODO Make adjustable: 1.7
+	// DISTANCE from centre to points behind the boid
+	private static double d1 = 6;// TODO Make adjustable:
+	// Distance from centre to front of boid,
+	private static double d2 = 2 * d1;
+	// Number of points in the drawing of a triangular boid
+	private static final int N_POINTS = 3;
+	private static double neighbourhoodRange = 8 * d1; // TODO Make adjustable:
+	private static double neighbourhoodAngle = Math.PI / 2;
 
-    //Preset weightings that will implement flocking behaviour
-    private static final double WEIGHTING_SEPARATION = 0.1;
-    private static final double WEIGHTING_ALIGNMENT = 0.36;
-    private static final double WEIGHTING_COHESION = 0.008;
+	// Preset weightings that will implement flocking behaviour
+	private static double weightingSeparation = 0.1; // TODO Make adjustable:
+	private static double weightingAlignment = 0.36; // TODO Make adjustable:
+	private static double weightingCohesion = 0.008; // TODO Make adjustable:
 
-    //For controlling the weightings with sliders at decimal values.
-    //A value of 100 is equal to 1*weighting
-    private static double influenceSeparation;
-    private static double influenceAlignment;
-    private static double influenceCohesion;
+	// For controlling the weightings with sliders at decimal values.
+	// A value of 100 is equal to 1*weighting
+	private static double influenceSeparation;
+	private static double influenceAlignment;
+	private static double influenceCohesion;
 
-    private Coordinate myCoordinate;
-    private Vector2D velocity;
-    private Vector2D separation;
-    private Vector2D alignment;
-    private Vector2D cohesion;
-    private ArrayList<Boid> nearBoids;
+	// private Graphics graphicsObject;
 
-    /***********************************************
-     *      INSTANCE VARIABLES AND "DEFINITIONS" END
-     ***********************************************/
+	private Coordinate position;
+	private Vector2D velocity;
+	private ArrayList<Boid> nearBoids;
 
-    /**
-     * Constructor which takes two doubles as position for the boid,
-     *  instantiates its vectors and its array list of near boids
-     * @param xPos Used as x part of position
-     * @param yPos Used as y part of position
-     */
-    public Boid(double xPos, double yPos)
-    {
-        this.myCoordinate = new Coordinate(xPos, yPos);
+	private static boolean drawBoidSimply = true;
+	private static boolean drawLinesBetweenSeenBoids = true;
+	private static double randomMovementAmount = 3; // Set between 0 and max
+													// velocity?
 
-        this.nearBoids = new ArrayList<Boid>();
+	/***********************************************
+	 * INSTANCE VARIABLES AND "DEFINITIONS" END
+	 ***********************************************/
 
-        this.velocity = this.setInitialVelocity();
-        this.limitVelocities();
-    }
+	/**
+	 * Constructor which takes two doubles as position for the boid,
+	 * instantiates its vectors and its array list of near boids
+	 * 
+	 * @param xPosition
+	 *            Used as x part of position
+	 * @param yPosition
+	 *            Used as y part of position
+	 */
+	public Boid(double xPosition, double yPosition) {
+		this.position = new Coordinate(xPosition, yPosition);
 
-    /**
-     * Draw function of the boid. Draws the boid by a filled polygon
-     * @param myGraphicsObject A graphics object
-     */
-    public void drawBoid(Graphics myGraphicsObject)
-    {
-        myGraphicsObject.fillPolygon(this.calculateXPoints(), this.calculateYPoints(), N_POINTS);
-    }
+		this.nearBoids = new ArrayList<Boid>();
 
-    /**
-     * Calculates which boids in the boidList are presently within the neighbourhood,
-     *  adds them to the nearBoids array list.
-     * @param boidList The array list of all the boids
-     */
-    public void calculateNearBoids(ArrayList<Boid> boidList)
-    {
-        //Clears any previous neighbours
-        this.nearBoids.clear();
-
-        for (Boid boid : boidList)
-        {
-            if (this.selfCheck(boid))
-            {
-                continue;
-            }
-
-            if (this.distanceBetweenBoids(boid) < NEIGHBOURHOOD)
-            {
-                this.nearBoids.add(boid);
-            }
-        }
-    }
-
-    /**
-     * Calculate new position of boid from current position and velocity vector
-     */
-    public void calculateNewPosition()
-    {
-        double newX, newY;
-        double speed = this.velocity.getMagnitude();
-        double angle = this.velocity.getDirection();
-
-        newX = this.myCoordinate.getxCoord() + speed * Math.cos(angle);
-        newY = this.myCoordinate.getyCoord() + speed * Math.sin(angle);
-
-        this.myCoordinate = new Coordinate(newX, newY);
-    }
-
-    /**
-     * Calculate new position of boid while implementing
-     *  "infinite sandbox mode": Borders are connected
-     * @param worldSizeX Size of world in x-direction
-     * @param worldSizeY Size of world in y-direction
-     */
-    public void calculateNewPositionInfiniteSandbox(double worldSizeX, double worldSizeY)
-    {
-        this.calculateNewPosition();
-
-        if (this.myCoordinate.getxCoord() > worldSizeX)
-        {
-            this.myCoordinate.setxCoord(0);
-        }
-        if (this.myCoordinate.getxCoord() < 0)
-        {
-            this.myCoordinate.setxCoord(worldSizeX);
-        }
-
-        if (this.myCoordinate.getyCoord() > worldSizeY)
-        {
-            this.myCoordinate.setyCoord(0);
-        }
-        if (this.myCoordinate.getyCoord() < 0)
-        {
-            this.myCoordinate.setyCoord(worldSizeY);
-        }
-    }
-
-    /**
-     * Calculate the velocity of the boid by calculating the rules separately,
-     *  adding them to the current velocity and finally limiting the length of the vectors
-     */
-    public void calculateVelocity()
-    {
-        this.calculateSeparation();
-        this.calculateAlignment();
-        this.calculateCohesion();
-
-        this.addVelocityVectors();
-        this.limitVelocities();
-    }
-
-    /**
-     * Multiplies each rule vector with an influence value, and adding them to the current velocity
-     */
-    private void addVelocityVectors()
-    {
-        this.separation.mult(influenceSeparation / 100);
-        this.alignment.mult(influenceAlignment   / 100);
-        this.cohesion.mult(influenceCohesion     / 100);
-
-        this.velocity.add(this.separation);
-        this.velocity.add(this.alignment);
-        this.velocity.add(this.cohesion);
-    }
-
-    /**
-     * Limits the length of the velocity vector (and at the same rate the three rule vectors)
-     *  until the velocities length is below <code>MAX_VELOCITY</code>
-     */
-    private void limitVelocities()
-    {
-        int i = 0;
-        while (this.velocity.getMagnitude() > MAX_VELOCITY)
-        {
-            this.velocity.mult(0.9);
-            i++;
-        }
-        this.separation.mult(Math.pow(0.8, i));
-        this.alignment.mult(Math.pow(0.8, i));
-        this.cohesion.mult(Math.pow(0.8, i));
-    }
-
-    /**
-     * Calculates separation vector for the boid, updates <code>this.separation</code>
-     */
-    private void calculateSeparation()
-	{
-        if (this.nearBoids.size() == 0)
-        {
-            this.separation = new Vector2D();
-        }
-
-        else
-        {
-            Vector2D totalSeparation = new Vector2D();
-
-            for (Boid nearBoid : this.nearBoids)
-            {
-                if (distanceBetweenBoids(nearBoid) < (3 * D1))
-                {
-                    //if(close range), then: add vector between them to totalSeparation
-                    totalSeparation.add(new Vector2D(this.getCoordinate(), nearBoid.getCoordinate()));
-                }
-            }
-
-            if (totalSeparation.getMagnitude() != 0)
-            {
-                double separationFactor = WEIGHTING_SEPARATION * Math.expm1((D1 / (totalSeparation.getMagnitude())));
-                totalSeparation.mult(separationFactor);
-                totalSeparation.inv();
-
-//                this.separation.add(totalSeparation);
-                this.separation = totalSeparation;
-            }
-        }
-    }
-
-    /**
-     * Calculates alignment vector for the boid, updates <code>this.alignment</code>
-     */
-    private void calculateAlignment()
-	{
-        if (this.nearBoids.size() == 0)
-        {
-            this.alignment = new Vector2D();
-        }
-
-        else
-        {
-            Vector2D averageVelocity = new Vector2D();
-
-            for (Boid nearBoid : this.nearBoids)
-            {
-                //Adds the velocity of each boid together to get an average angle
-                averageVelocity.add(nearBoid.getVelocity());
-            }
-            //Dividing by number of close boids to get a shorter averaged vector
-            averageVelocity.div(this.nearBoids.size());
-            averageVelocity.mult(WEIGHTING_ALIGNMENT);
-
-            this.alignment.add(averageVelocity);
-            //this.alignment = averageVelocity;
-        }
+		this.velocity = new Vector2D(maxVelocity);
 	}
 
-    /**
-     * Calculates cohesion vector for the boid, updates <code>this.cohesion</code>
-     */
-    private void calculateCohesion()
-	{
-        double averageXpos = 0;
-        double averageYpos = 0;
+	/**
+	 * Draw function of the boid. Draws the boid by a filled polygon
+	 * 
+	 * @param myGraphicsObject
+	 *            A graphics object
+	 */
+	public void drawBoid(Graphics myGraphicsObject) {
+		double xPosition = this.position.getxCoord();
+		double yPosition = this.position.getyCoord();
+		double speed = this.velocity.getMagnitude();
+		double direction = this.velocity.getDirection();
 
-        if (this.nearBoids.size() == 0)
-        {
-            averageXpos = this.myCoordinate.getxCoord();
-            averageYpos = this.myCoordinate.getyCoord();
-        }
+		myGraphicsObject.setColor(Color.BLACK);
+		if (drawBoidSimply) {
+			myGraphicsObject.drawOval((int) (xPosition - d1), (int) (yPosition - d1), (int) d2, (int) d2);
+			myGraphicsObject.setColor(Color.LIGHT_GRAY);
+			myGraphicsObject.drawLine((int) xPosition, (int) yPosition,
+					(int) (xPosition + speed * d1 * Math.cos(direction)),
+					(int) (yPosition + speed * d1 * Math.sin(direction)));
+		} else {
+			myGraphicsObject.drawPolygon(this.calculateXPoints(), this.calculateYPoints(), N_POINTS);
+		}
 
-        else
-        {
-            for (Boid nearBoid : this.nearBoids)
-            {
-                averageXpos += nearBoid.getCoordinate().getxCoord();
-                averageYpos += nearBoid.getCoordinate().getyCoord();
-            }
-            averageXpos /= this.nearBoids.size();
-            averageYpos /= this.nearBoids.size();
-        }
+		if (drawLinesBetweenSeenBoids) {
+			myGraphicsObject.setColor(Color.CYAN);
+			for (Boid boid : this.nearBoids) {
+				if (!this.selfCheck(boid)) {
 
-        Coordinate averagePosition = new Coordinate(averageXpos, averageYpos);
-        Vector2D tempCohesion = new Vector2D(this.getCoordinate(), averagePosition);
+					myGraphicsObject.drawLine((int) this.position.getxCoord(), (int) this.position.getyCoord(),
+							(int) boid.position.getxCoord(), (int) boid.position.getyCoord());
+				}
+			}
+		}
+	}
 
-        tempCohesion.mult(WEIGHTING_COHESION);
-//        this.cohesion.add(tempCohesion);
-        this.cohesion = tempCohesion;
-    }
+	/**
+	 * Calculates which boids in the boidList are presently within the
+	 * neighbourhood, adds them to the nearBoids array list.
+	 * 
+	 * @param boidList
+	 *            The array list of all the boids
+	 */
+	public void calculateVisibleBoids(ArrayList<Boid> boidList) {
+		// Clears any previous neighbours
+		this.nearBoids.clear();
 
-    /**
-     * Compares the passed boid to <code>this</code> boid;
-     *  returns true if they are the same
-     * @param otherBoid Boid to compare
-     * @return True if boid and <code>this</code> are the same
-     */
-    private boolean selfCheck(Boid otherBoid)
-    {
-        boolean equal = false;
+		for (Boid boid : boidList) {
+			if (this.selfCheck(boid)) {
+				continue;
+			}
 
-        if (otherBoid == this)
-        {
-            equal = true;
-        }
-        return equal;
-    }
+			if (this.distanceBetweenBoids(boid) < neighbourhoodRange) {
+				Vector2D vectorBetweenBoidPositions = new Vector2D(this.position, boid.position);
+				double angleBetweenDirectionAndBoidVector = this.velocity.getDirection()
+						- vectorBetweenBoidPositions.getDirection();
 
-    /**
-     * Calculates the distance between <code>this</code> boid and the passed boid.
-     * @param otherBoid Boid to calculate distance to
-     * @return The positive total distance between the two boids centres
-     */
-    private double distanceBetweenBoids(Boid otherBoid)
-    {
-        Coordinate otherBoidCoordinate = otherBoid.getCoordinate();
-        double distanceX = this.myCoordinate.getxCoord() - otherBoidCoordinate.getxCoord();
-        double distanceY = this.myCoordinate.getyCoord() - otherBoidCoordinate.getyCoord();
+				if (angleBetweenDirectionAndBoidVector <= neighbourhoodAngle
+						&& angleBetweenDirectionAndBoidVector >= -neighbourhoodAngle) {
+					this.nearBoids.add(boid);
+				}
+			}
+		}
+	}
 
-        return Math.hypot(distanceX, distanceY);
-    }
+	/**
+	 * Calculate new position of boid from current position and velocity vector
+	 */
+	public void calculateNewPosition() {
+		double newX, newY;
+		double speed = this.velocity.getMagnitude();
+		double direction = this.velocity.getDirection();
 
-    /**
-     * Instantiates initial random vectors for the three rule vectors,
-     *  as well as returning a random velocity vector.
-     * @return A pseudo random velocity vector
-     */
-    private Vector2D setInitialVelocity()
-    {
-        // (20*___) to get a better random result than with solely the MAX_VELOCITY range.
-        this.separation = new Vector2D(20 * MAX_VELOCITY);
-        this.alignment = new Vector2D(20 * MAX_VELOCITY);
-        this.cohesion = new Vector2D(20 * MAX_VELOCITY);
+		newX = this.position.getxCoord() + speed * Math.cos(direction);
+		newY = this.position.getyCoord() + speed * Math.sin(direction);
 
-        return new Vector2D(20 * MAX_VELOCITY);
-    }
+		this.position = new Coordinate(newX, newY);
+	}
 
-    /**
-     * Calculates the x values of the boids draw-functions polygon
-     * @return An int array with three x-coordinates in
-     */
-    private int[] calculateXPoints()
-    {
-        double angle = this.velocity.getDirection();
-        double x = myCoordinate.getxCoord();
-        int[] xPoints = new int[N_POINTS];
+	/**
+	 * Calculate new position of boid while implementing "infinite sandbox mode"
+	 * : Borders are connected
+	 * 
+	 * @param worldSizeX
+	 *            Size of world in x-direction
+	 * @param worldSizeY
+	 *            Size of world in y-direction
+	 */
+	public void calculateNewPositionInfiniteSandbox(double worldSizeX, double worldSizeY) {
+		this.calculateNewPosition();
 
-        xPoints[0] = (int) (x + D1 * Math.cos(angle + 5 * Math.PI / 4));
-        xPoints[1] = (int) (x + D2 * Math.cos(angle));
-        xPoints[2] = (int) (x + D1 * Math.cos(angle + 3 * Math.PI / 4));
+		if (this.position.getxCoord() > worldSizeX) {
+			this.position.setxCoord(0);
+		}
+		if (this.position.getxCoord() < 0) {
+			this.position.setxCoord(worldSizeX);
+		}
 
-        return xPoints;
-    }
+		if (this.position.getyCoord() > worldSizeY) {
+			this.position.setyCoord(0);
+		}
+		if (this.position.getyCoord() < 0) {
+			this.position.setyCoord(worldSizeY);
+		}
+	}
 
-    /**
-     * Calculates the y values of the boids draw-functions polygon
-     * @return An int array with three y-coordinates in
-     */
-    private int[] calculateYPoints()
-    {
-        double angle = this.velocity.getDirection();
-        double y = myCoordinate.getyCoord();
-        int[] yPoints = new int[N_POINTS];
+	/**
+	 * Calculate the velocity of the boid by calculating the rules separately,
+	 * adding them to the current velocity and finally limiting the length of
+	 * the vectors
+	 */
+	public void updateVelocity() {
+		if (this.nearBoids.size() == 0) { // If no boids in sight, be a bit random
+											// in speed and direction
+			double speed = this.velocity.getMagnitude();
+			double direction = this.velocity.getDirection();
 
-        yPoints[0] = (int) (y + D1 * Math.sin(angle + 5 * Math.PI / 4));
-        yPoints[1] = (int) (y + D2 * Math.sin(angle));
-        yPoints[2] = (int) (y + D1 * Math.sin(angle + 3 * Math.PI / 4));
+			Random randomMovementNumber = new Random();
+			double newXComponent = speed * Math.cos(direction) * randomMovementNumber.nextDouble()
+					* randomMovementAmount;
+			double newYComponent = speed * Math.sin(direction) * randomMovementNumber.nextDouble()
+					* randomMovementAmount;
+			Vector2D randomVelocity = new Vector2D(newXComponent, newYComponent);
+			
+			this.velocity.add(randomVelocity);
+		} 
+		else {
+			Vector2D separation = this.calculateSeparationVector();
+			Vector2D alignment = this.calculateAlignmentVector();
+			Vector2D cohesion = this.calculateCohesionVector();
 
-        return yPoints;
-    }
+			separation.mult(influenceSeparation / 100);
+			alignment.mult(influenceAlignment / 100);
+			cohesion.mult(influenceCohesion / 100);
 
-    /***********************************************
-     *      Getters / Setters
-     ***********************************************/
+			this.velocity.add(separation);
+			this.velocity.add(alignment);
+			this.velocity.add(cohesion);
+		}
 
-    /**
-     * Returns the boids coordinate
-     * @return The boids coordinate
-     */
-    public Coordinate getCoordinate()
-    {
-        return myCoordinate;
-    }
+		double speed = this.velocity.getMagnitude();
+		if (speed > maxVelocity) {
+			this.velocity.div(speed);
+			this.velocity.mult(maxVelocity);
+		}
+	}
 
-    /**
-     * Returns the boids velocity vector
-     * @return The boids velocity vector
-     */
-    public Vector2D getVelocity()
-    {
-        return velocity;
-    }
+	/**
+	 * Calculates separation vector for the boid, updates
+	 * <code>this.separation</code>
+	 * 
+	 * @return
+	 */
+	private Vector2D calculateSeparationVector() {
+		Vector2D updatedSeparationVector = new Vector2D();
 
-    /**
-     * Sets the influence of separation
-     * @param influenceSeparationSlider Influence of separation,
-     *                            a value of 100 is equal to 1 times the weight of the rule
-     */
-    public void setInfluenceSeparation(int influenceSeparationSlider)
-    {
-        influenceSeparation = influenceSeparationSlider;
-    }
+		if (this.nearBoids.size() > 0) {
 
-    /**
-     * Sets the influence of alignment
-     * @param influenceAlignmentSlider Influence of alignment,
-     *                            a value of 100 is equal to 1 times the weight of the rule
-     */
-    public void setInfluenceAlignment(int influenceAlignmentSlider)
-    {
-        influenceAlignment = influenceAlignmentSlider;
-    }
+			for (Boid nearBoid : this.nearBoids) {
+				updatedSeparationVector.add(new Vector2D(this.getCoordinate(), nearBoid.getCoordinate()));
+			}
 
-    /**
-     * Sets the influence of cohesion
-     * @param influenceCohesionSlider Influence of cohesion,
-     *                            a value of 100 is equal to 1 times the weight of the rule
-     */
-    public void setInfluenceCohesion(int influenceCohesionSlider)
-    {
-        influenceCohesion = influenceCohesionSlider;
-    }
+			if (updatedSeparationVector.getMagnitude() != 0) {
+				double separationFactor = weightingSeparation
+						* Math.expm1((d1 / (updatedSeparationVector.getMagnitude())));
+				updatedSeparationVector.mult(separationFactor);
+				updatedSeparationVector.inv();
+			}
+		}
+		return updatedSeparationVector;
+	}
+
+	/**
+	 * Calculates alignment vector for the boid, updates
+	 * <code>this.alignment</code>
+	 */
+	private Vector2D calculateAlignmentVector() {
+		Vector2D updatedAlignmentVector = new Vector2D();
+
+		if (this.nearBoids.size() > 0) {
+			for (Boid nearBoid : this.nearBoids) {
+				// Adds the velocity of each boid together to get an average
+				// angle
+				updatedAlignmentVector.add(nearBoid.getVelocity());
+			}
+			// Dividing by number of close boids to get a shorter averaged
+			// vector
+			updatedAlignmentVector.div(this.nearBoids.size());
+			updatedAlignmentVector.mult(weightingAlignment);
+		}
+		return updatedAlignmentVector;
+	}
+
+	/**
+	 * Calculates cohesion vector for the boid, updates
+	 * <code>this.cohesion</code>
+	 */
+	private Vector2D calculateCohesionVector() {
+		Vector2D updatedCohesionVector = new Vector2D();
+		double averageXpos = 0;
+		double averageYpos = 0;
+
+		if (this.nearBoids.size() == 0) {
+			averageXpos = this.position.getxCoord();
+			averageYpos = this.position.getyCoord();
+		}
+
+		else {
+			for (Boid nearBoid : this.nearBoids) {
+				averageXpos += nearBoid.getCoordinate().getxCoord();
+				averageYpos += nearBoid.getCoordinate().getyCoord();
+			}
+			averageXpos /= this.nearBoids.size();
+			averageYpos /= this.nearBoids.size();
+
+			Coordinate averagePosition = new Coordinate(averageXpos, averageYpos);
+			updatedCohesionVector = new Vector2D(this.getCoordinate(), averagePosition);
+			updatedCohesionVector.mult(weightingCohesion);
+		}
+		return updatedCohesionVector;
+	}
+
+	/**
+	 * Compares the passed boid to <code>this</code> boid; returns true if they
+	 * are the same
+	 * 
+	 * @param otherBoid
+	 *            Boid to compare
+	 * @return True if boid and <code>this</code> are the same
+	 */
+	private boolean selfCheck(Boid otherBoid) {
+		boolean boidIsEqual = false;
+
+		if (otherBoid == this) {
+			boidIsEqual = true;
+		}
+		return boidIsEqual;
+	}
+
+	/**
+	 * Calculates the distance between <code>this</code> boid and the compared
+	 * boid.
+	 * 
+	 * @param otherBoid
+	 *            Boid to calculate distance to
+	 * @return The positive total distance between the two boids centres
+	 */
+	private double distanceBetweenBoids(Boid otherBoid) {
+		Coordinate otherBoidCoordinate = otherBoid.getCoordinate();
+		double distanceX = this.position.getxCoord() - otherBoidCoordinate.getxCoord();
+		double distanceY = this.position.getyCoord() - otherBoidCoordinate.getyCoord();
+
+		return Math.hypot(distanceX, distanceY);
+	}
+
+	/**
+	 * Calculates the x values of the boids draw-functions polygon
+	 * 
+	 * @return An int array with three x-coordinates in
+	 */
+	private int[] calculateXPoints() {
+		double angle = this.velocity.getDirection();
+		double x = position.getxCoord();
+		int[] xPoints = new int[N_POINTS];
+
+		xPoints[0] = (int) (x + d1 * Math.cos(angle + 5 * Math.PI / 4));
+		xPoints[1] = (int) (x + d2 * Math.cos(angle));
+		xPoints[2] = (int) (x + d1 * Math.cos(angle + 3 * Math.PI / 4));
+
+		return xPoints;
+	}
+
+	/**
+	 * Calculates the y values of the boids draw-functions polygon
+	 * 
+	 * @return An int array with three y-coordinates in
+	 */
+	private int[] calculateYPoints() {
+		double angle = this.velocity.getDirection();
+		double y = position.getyCoord();
+		int[] yPoints = new int[N_POINTS];
+
+		yPoints[0] = (int) (y + d1 * Math.sin(angle + 5 * Math.PI / 4));
+		yPoints[1] = (int) (y + d2 * Math.sin(angle));
+		yPoints[2] = (int) (y + d1 * Math.sin(angle + 3 * Math.PI / 4));
+
+		return yPoints;
+	}
+
+	/***********************************************
+	 * Getters / Setters
+	 ***********************************************/
+
+	/**
+	 * Returns the boids coordinate
+	 * 
+	 * @return The boids coordinate
+	 */
+	public Coordinate getCoordinate() {
+		return position;
+	}
+
+	/**
+	 * Returns the boids velocity vector
+	 * 
+	 * @return The boids velocity vector
+	 */
+	public Vector2D getVelocity() {
+		return velocity;
+	}
+
+	/**
+	 * Sets the influence of separation
+	 * 
+	 * @param influenceSeparationSlider
+	 *            Influence of separation, a value of 100 is equal to 1 times
+	 *            the weight of the rule
+	 */
+	public void setInfluenceSeparation(int influenceSeparationSlider) {
+		influenceSeparation = influenceSeparationSlider;
+	}
+
+	/**
+	 * Sets the influence of alignment
+	 * 
+	 * @param influenceAlignmentSlider
+	 *            Influence of alignment, a value of 100 is equal to 1 times the
+	 *            weight of the rule
+	 */
+	public void setInfluenceAlignment(int influenceAlignmentSlider) {
+		influenceAlignment = influenceAlignmentSlider;
+	}
+
+	/**
+	 * Sets the influence of cohesion
+	 * 
+	 * @param influenceCohesionSlider
+	 *            Influence of cohesion, a value of 100 is equal to 1 times the
+	 *            weight of the rule
+	 */
+	public void setInfluenceCohesion(int influenceCohesionSlider) {
+		influenceCohesion = influenceCohesionSlider;
+	}
 }
